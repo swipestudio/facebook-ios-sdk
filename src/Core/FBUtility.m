@@ -338,48 +338,39 @@ NSString *const FBPersistedAnonymousIDKey   = @"anon_id";
 }
 
 + (NSString *)advertiserID {
-    
-    NSString *result = nil;
-    
-    Class ASIdentifierManagerClass = fbdfl_ASIdentifierManagerClass();
-    if ([ASIdentifierManagerClass class]) {
-        ASIdentifierManager *manager = [ASIdentifierManagerClass sharedManager];
-        result = [[manager advertisingIdentifier] UUIDString];
-    }
-    
-    return result;
+    return nil;
 }
 
 + (NSString *)anonymousID {
-    
+
     // Grab previously written anonymous ID and, if none have been generated, create and
     // persist a new one which will remain associated with this app.
     NSString *result = [self retrievePersistedAnonymousID];
     if (!result) {
-        
+
         // Generate a new anonymous ID.  Create as a UUID, but then prepend the fairly
         // arbitrary 'XZ' to the front so it's easily distinguishable from IDFA's which
         // will only contain hex.
         CFUUIDRef uuid = CFUUIDCreate(NULL);
         NSString *uuidString = (NSString *) CFUUIDCreateString(NULL, uuid);
-        
+
         result = [NSString stringWithFormat:@"XZ%@", uuidString];
-        
+
         [self persistAnonymousID:result];
         CFRelease(uuid);
         [uuidString release];
     }
-    
+
     return result;
 }
 
 
 + (void)persistAnonymousID:(NSString *)anonymousID {
-    
+
     [FBAppEvents ensureOnMainThread];
     NSDictionary *data = @{ FBPersistedAnonymousIDKey : anonymousID };
     NSString *content = [FBUtility simpleJSONEncode:data];
-    
+
     [content writeToFile:[FBAppEvents persistenceLibraryFilePath:FBPersistedAnonymousIDFilename]
               atomically:YES
                 encoding:NSStringEncodingConversionAllowLossy
